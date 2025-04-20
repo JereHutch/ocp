@@ -2,7 +2,7 @@
 Jeremiah Hutchison
 Program Name: ocproject.py
 Description: A program to take an excel datasheet and give the savings potential
-for contracts that overlap each other. We will be using streamlit and pandas
+for contracts that overlap each other. We will be using streamlit, pandas, and plotly.express
 for the framework and manipulation of the data. 
 """
 
