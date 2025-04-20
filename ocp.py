@@ -27,32 +27,23 @@ def assign_overlap_groups(df, start_group_id=0):
     df["End_Date"] = pd.to_datetime(df["End_Date"])
     df = df.sort_values("Start_Date").reset_index(drop=True)
 
-    group_id = start_group_id
-    current_group = []
-    current_end = pd.Timestamp.min
     df["Overlap_Group"] = -1
+    group_id = start_group_id
+    current_end = pd.Timestamp.min
 
     for i, row in df.iterrows():
         start = row["Start_Date"]
         end = row["End_Date"]
 
         if start > current_end:
-            if current_group:
-                for idx in current_group:
-                    df.loc[idx, "Overlap_Group"] = group_id
-                group_id += 1
-            current_group = [i]
             current_end = end
+            group_id += 1
         else:
-            current_group.append(i)
             current_end = max(current_end, end)
 
-    if current_group:
-        for idx in current_group:
-            df.loc[idx, "Overlap_Group"] = group_id
-        group_id += 1  # Don't forget to increment one last time!
+        df.at[i, "Overlap_Group"] = group_id
 
-    return df, group_id
+    return df, group_id  # return the updated group_id
 
 #Now we setup the main idea for the project itself. Overlapping by Service Type.
 if uploaded_file:
@@ -68,6 +59,7 @@ if uploaded_file:
 
         all_grouped = []
         all_savings = []
+        group_id_counter = 0  #Keep track of unique overlap groups across service types
 
         #Filter the service types
         service_types = df["Service_Type"].unique()
@@ -78,7 +70,9 @@ if uploaded_file:
         for service in selected_types:
             st.subheader(f"Service Type: {service}")
             df_service = df[df["Service_Type"] == service].copy()
-            df_grouped = assign_overlap_groups(df_service)
+            
+            #Get grouped dataframe and update the group_id_counter
+            df_grouped, group_id_counter = assign_overlap_groups(df_service, start_group_id=group_id_counter)
             all_grouped.append(df_grouped)
 
             st.write("Overlapping Contracts:")
@@ -90,13 +84,11 @@ if uploaded_file:
                 if len(group_df) > 1:
                     st.markdown(f"#### Overlap Group {group} - {service}")
                     selected_contracts = []
-                    user_selected_ids = []
                     for _, row in group_df.iterrows():
                         contract_id = row["Contract_ID"]
                         label = f"{row['Contract_Name']} (Vendor: {contract_id}, Cost: ${row['Cost']}, Maintenance: ${row['Maintenance']})"
                         if st.checkbox(f"Keep: {label}", key=f"{service}_{group}_{contract_id}"):
                             selected_contracts.append(contract_id)
-                            user_selected_ids.append(contract_id)
 
                     total_cost = group_df["Total Cost"].sum()
                     kept_df = group_df[group_df["Contract_ID"].isin(selected_contracts)]
@@ -111,7 +103,7 @@ if uploaded_file:
                             "Total Group Cost": total_cost,
                             "User Selected Contracts Cost": kept_cost,
                             "Estimated Savings": savings
-                    })
+                        })
 
             if savings_list:
                 savings_df = pd.DataFrame(savings_list)
