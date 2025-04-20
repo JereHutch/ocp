@@ -21,31 +21,38 @@ st.write("Required Columns: Contract_Name, Contract_ID, Service_Type, Start_Date
 uploaded_file = st.file_uploader("Choose an Excel file", type=["xlsx"])
 
 #Define the function for grouping overlapping contracts.
-def assign_overlap_groups(df):
+def assign_overlap_groups(df, start_group_id=0):
     df = df.copy()
     df["Start_Date"] = pd.to_datetime(df["Start_Date"])
     df["End_Date"] = pd.to_datetime(df["End_Date"])
     df = df.sort_values("Start_Date").reset_index(drop=True)
 
-    df["Overlap_Group"] = -1
-    group_id = 0
+    group_id = start_group_id
+    current_group = []
     current_end = pd.Timestamp.min
+    df["Overlap_Group"] = -1
 
     for i, row in df.iterrows():
         start = row["Start_Date"]
         end = row["End_Date"]
 
         if start > current_end:
-            # Start a new group
+            if current_group:
+                for idx in current_group:
+                    df.loc[idx, "Overlap_Group"] = group_id
+                group_id += 1
+            current_group = [i]
             current_end = end
-            group_id += 1
         else:
-            # Overlaps, so extend the current group
+            current_group.append(i)
             current_end = max(current_end, end)
 
-        df.at[i, "Overlap_Group"] = group_id
+    if current_group:
+        for idx in current_group:
+            df.loc[idx, "Overlap_Group"] = group_id
+        group_id += 1  # Don't forget to increment one last time!
 
-    return df
+    return df, group_id
 
 #Now we setup the main idea for the project itself. Overlapping by Service Type.
 if uploaded_file:
