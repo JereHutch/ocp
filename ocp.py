@@ -121,7 +121,7 @@ if uploaded_file:
                 st.dataframe(savings_df)
                 all_savings.append(savings_df)
             else:
-                st.info(f"No overlapping contracts found for {service}.")
+                st.info(f"Assumption: No overlapping contracts found for {service}.")
 
         #Final summary of all potential savings.
         if all_savings:
