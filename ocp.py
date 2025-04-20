@@ -61,7 +61,7 @@ if uploaded_file:
     df = pd.read_excel(uploaded_file)
 
     #Make sure they have the right columns.
-    required_cols = ["Contract_ID", "Service_Type", "Start_Date", "End_Date", "Cost", "Maintenance"]
+    required_cols = ["Contract_Name", "Contract_ID", "Service_Type", "Start_Date", "End_Date", "Cost", "Maintenance"]
     if not all(col in df.columns for col in required_cols):
         st.error(f"Missing one or more required columns: {', '.join(required_cols)}")
     else:
