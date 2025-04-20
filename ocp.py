@@ -120,7 +120,7 @@ if uploaded_file:
             st.dataframe(final_df)
 
             total_savings = final_df["Estimated Savings"].sum()
-            st.metric("Total Estimated Savings", f"${total_savings:,.2f}")
+            st.metric("🔥Total Estimated Savings", f"${total_savings:,.2f}")
 
             #Optional Download
             st.download_button(
