@@ -9,6 +9,7 @@ for the framework and manipulation of the data.
 #We'll be using Streamlit as the framework and Pandas for the dataframes.
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
 #Let's Show the TITLE!!
 st.set_page_config(page_title="Contract Overlap Analyzer", layout="wide")
@@ -89,16 +90,29 @@ if uploaded_file:
             savings_list = []
             for group, group_df in df_grouped.groupby("Overlap_Group"):
                 if len(group_df) > 1:
-                    total_cost = group_df["Total Cost"].sum()
-                    min_cost = group_df["Total Cost"].min()
-                    savings = total_cost - min_cost
+                    st.markdown(f"#### Overlap Group {group} - {service}")
+                    selected_contracts = []
+                    user_selected_ids = []
+                    for _, row in group_df.iterrows():
+                        contract_id = row["Contract_ID"]
+                        label = f"{row['Contract_Name']} (Vendor: {contract_id}, Cost: ${row['Cost']}, Maintenance: ${row['Maintenance']})"
+                        if st.checkbox(f"Keep: {label}", key=f"{service}_{group}_{contract_id}"):
+                            selected_contracts.append(contract_id)
+                            user_selected_ids.append(contract_id)
 
-                    savings_list.append({
-                        "Service_Type": service,
-                        "Overlap_Group": group,
-                        "Total Group Cost": total_cost,
-                        "Minimum Contract Total Cost": min_cost,
-                        "Estimated Savings": savings
+                    total_cost = group_df["Total Cost"].sum()
+                    kept_df = group_df[group_df["Contract_ID"].isin(selected_contracts)]
+
+                    if not kept_df.empty:
+                        kept_cost = kept_df["Total Cost"].sum()
+                        savings = total_cost - kept_cost
+
+                        savings_list.append({
+                            "Service_Type": service,
+                            "Overlap_Group": group,
+                            "Total Group Cost": total_cost,
+                            "User Selected Contracts Cost": kept_cost,
+                            "Estimated Savings": savings
                     })
 
             if savings_list:
@@ -117,7 +131,22 @@ if uploaded_file:
 
             total_savings = final_df["Estimated Savings"].sum()
             st.metric("Total Estimated Savings", f"${total_savings:,.2f}")
+
+            #Optional Download
+            st.download_button(
+                label="Download Savings Report",
+                data=final_df.to_csv(index=False),
+                file_name="savings_report.csv",
+                mime="text/csv"
+            )
+
+            #Let's now add a pie chart to show our data.
+            pie_data = final_df.groupby("Service_Type")["Estimated Savings"].sum().reset_index()
+            fig = px.pie(pie_data, names="Service_Type", values="Estimated Savings",
+                         title="Savings by Service Type", hole=0.4)
+            st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No overlapping contracts found in any selected Service Type.")
 else:
     st.warning("Please upload an Excel file to get started.")
+
