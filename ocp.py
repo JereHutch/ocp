@@ -23,36 +23,27 @@ uploaded_file = st.file_uploader("Choose an Excel file", type=["xlsx"])
 #Define the function for grouping overlapping contracts.
 def assign_overlap_groups(df):
     df = df.copy()
-    #Convert the date data into ACTUAL objects.
     df["Start_Date"] = pd.to_datetime(df["Start_Date"])
     df["End_Date"] = pd.to_datetime(df["End_Date"])
     df = df.sort_values("Start_Date").reset_index(drop=True)
 
-    #ID's for Overlapping Groups.
-    group_id = 0
-    current_group = []
-    current_end = pd.Timestamp.min
     df["Overlap_Group"] = -1
+    group_id = 0
+    current_end = pd.Timestamp.min
 
-    #Setup for the overlap on dates.
     for i, row in df.iterrows():
         start = row["Start_Date"]
         end = row["End_Date"]
 
         if start > current_end:
-            if current_group:
-                for idx in current_group:
-                    df.loc[idx, "Overlap_Group"] = group_id
-                group_id += 1
-            current_group = [i]
+            # Start a new group
             current_end = end
+            group_id += 1
         else:
-            current_group.append(i)
+            # Overlaps, so extend the current group
             current_end = max(current_end, end)
 
-    if current_group:
-        for idx in current_group:
-            df.loc[idx, "Overlap_Group"] = group_id
+        df.at[i, "Overlap_Group"] = group_id
 
     return df
 
