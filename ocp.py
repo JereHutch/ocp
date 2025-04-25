@@ -13,10 +13,9 @@ import plotly.express as px
 
 #Let's Show the TITLE and LOGO!
 st.set_page_config(page_title="Contract Overlap Analyzer", layout="wide")
-st.image("BongoLogo.PNG", width=150)
 st.title("Overlapinator: Contract Overlap Analyzer")
 st.write("Welcome! To Begin, Upload an Excel file with your contract data with the required columns.")
-st.write("Required Columns: Contract_Name, Contract_ID, Service_Type, Start_Date, End_Date, Cost, Maintenancem, Department")
+st.write("Required Columns: Contract_Name, Contract_ID, Service_Type, Start_Date, End_Date, Cost, Maintenance, Department")
 
 #Upload their Excel File with their contract data.
 uploaded_file = st.file_uploader("Choose an Excel file", type=["xlsx"])
@@ -44,7 +43,7 @@ def assign_overlap_groups(df, start_group_id=0):
 
         df.at[i, "Overlap_Group"] = group_id
 
-    return df, group_id  # return the updated group_id
+    return df, group_id  #return the updated group_id
 
 #Now we setup the main idea for the project itself. Overlapping by Service Type.
 if uploaded_file:
@@ -56,30 +55,34 @@ if uploaded_file:
         st.error(f"Missing one or more required columns: {', '.join(required_cols)}")
     else:
         #Calculate the total cost of the contract.
-        df["Total Cost"] = df["Cost"] + df["Maintenance"]
+         df["Total Cost"] = df["Cost"] + df["Maintenance"]
 
-        #Let's add this Search Bar!
-        search_query = st.text_input("Search Contracts by Name or ID🔎")
+        # Sidebar Filters
+        with st.sidebar:
+            st.image("BongoLogo.PNG", width=120)
+            st.markdown("### Filter Your Contracts")
+
+            search_query = st.text_input("Search by Contract Name or ID")
+
+            service_types = df["Service_Type"].unique()
+            selected_types = st.multiselect("Service Type", service_types, default=service_types)
+
+            departments = df["Department"].dropna().unique()
+            selected_departments = st.multiselect("Department", departments, default=departments)
+
+        # Apply filters
         if search_query:
             df = df[
-                df["Contract_Name"].str.contains(search_query, case=False, na=False)|
+                df["Contract_Name"].str.contains(search_query, case=False, na=False) |
                 df["Contract_ID"].astype(str).str.contains(search_query, case=False, na=False)
             ]
-                
+
+        df = df[df["Service_Type"].isin(selected_types)]
+        df = df[df["Department"].isin(selected_departments)]
 
         all_grouped = []
         all_savings = []
-        group_id_counter = 0  #Keep track of unique overlap groups across service types
-
-        #Filter the service types
-        service_types = df["Service_Type"].unique()
-        selected_types = st.multiselect("Filter by Service Type", service_types, default=service_types)
-        df = df[df["Service_Type"].isin(selected_types)]
-
-        #Filter by Department
-        departments = df["Department"].dropna().unique()
-        selected_departments = st.multiselect("Filter by Department", departments, default=departments)
-        df = df[df["Department"].isin(selected_departments)]
+        group_id_counter = 0
 
         #Process each Service Type separately in their own group.
         for service in selected_types:
@@ -154,4 +157,6 @@ if uploaded_file:
             st.info("No overlapping contracts found in any selected Service Type.")
 else:
     st.warning("Please upload an Excel file to get started.")
+
+
 
