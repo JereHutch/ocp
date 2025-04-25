@@ -58,17 +58,17 @@ if uploaded_file:
          df["Total Cost"] = df["Cost"] + df["Maintenance"]
 
         # Sidebar Filters
-        with st.sidebar:
-            st.image("BongoLogo.PNG", width=120)
-            st.markdown("### Filter Your Contracts")
+    with st.sidebar:
+        st.image("BongoLogo.PNG", width=120)
+        st.markdown("### Filter Your Contracts")
 
-            search_query = st.text_input("Search by Contract Name or ID")
+        search_query = st.text_input("Search by Contract Name or ID")
 
-            service_types = df["Service_Type"].unique()
-            selected_types = st.multiselect("Service Type", service_types, default=service_types)
+        service_types = df["Service_Type"].unique()
+        selected_types = st.multiselect("Service Type", service_types, default=service_types)
 
-            departments = df["Department"].dropna().unique()
-            selected_departments = st.multiselect("Department", departments, default=departments)
+        departments = df["Department"].dropna().unique()
+        selected_departments = st.multiselect("Department", departments, default=departments)
 
         # Apply filters
         if search_query:
