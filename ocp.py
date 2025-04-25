@@ -13,7 +13,7 @@ import plotly.express as px
 
 #Let's Show the TITLE and LOGO!
 st.set_page_config(page_title="Contract Overlap Analyzer", layout="wide")
-st.image("BongoLogo.PNG", width=150) 
+st.image("BongoLogo.PNG", width=150)
 st.title("Overlapinator: Contract Overlap Analyzer")
 st.write("Welcome! To Begin, Upload an Excel file with your contract data.")
 st.write("Required Columns: Contract_Name, Contract_ID, Service_Type, Start_Date, End_Date, Cost, Maintenance")
@@ -57,6 +57,15 @@ if uploaded_file:
     else:
         #Calculate the total cost of the contract.
         df["Total Cost"] = df["Cost"] + df["Maintenance"]
+
+        #Let's add this Search Bar!
+        search_query = st.text_input("Search Contracts by Name or ID")
+        if search_query:
+            df = df[
+                df["Contract_Name"].str.contains(search_query, case=False, na=False)|
+                df["Contract_ID"].astype(str).str.contains(search_query, case=False, na=False)
+            ]
+                
 
         all_grouped = []
         all_savings = []
