@@ -140,7 +140,7 @@ if uploaded_file:
             retained_contract_ids = final_df["User Selected Contracts Cost"].count()
 
             col1, col2 = st.columns(2)
-            col1.metric("Total Overlapping Contracts", total_overlapping)
+            col1.metric("Total Overlapping Groups", total_overlapping)
             col2.metric("Contracts Selected to Keep", retained_contract_ids)
 
             #Let's show the last savings table
