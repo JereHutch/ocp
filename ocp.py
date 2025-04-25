@@ -58,7 +58,7 @@ if uploaded_file:
          df["Total Cost"] = df["Cost"] + df["Maintenance"]
 
         # Sidebar Filters
-        with st.sidebar:
+     with st.sidebar:
             st.image("BongoLogo.PNG", width=120)
             st.markdown("### Filter Your Contracts")
 
