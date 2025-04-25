@@ -15,8 +15,8 @@ import plotly.express as px
 st.set_page_config(page_title="Contract Overlap Analyzer", layout="wide")
 st.image("BongoLogo.PNG", width=150)
 st.title("Overlapinator: Contract Overlap Analyzer")
-st.write("Welcome! To Begin, Upload an Excel file with your contract data.")
-st.write("Required Columns: Contract_Name, Contract_ID, Service_Type, Start_Date, End_Date, Cost, Maintenance")
+st.write("Welcome! To Begin, Upload an Excel file with your contract data with the required columns.")
+st.write("Required Columns: Contract_Name, Contract_ID, Service_Type, Start_Date, End_Date, Cost, Maintenancem, Department")
 
 #Upload their Excel File with their contract data.
 uploaded_file = st.file_uploader("Choose an Excel file", type=["xlsx"])
@@ -51,7 +51,7 @@ if uploaded_file:
     df = pd.read_excel(uploaded_file)
 
     #Make sure they have the right columns.
-    required_cols = ["Contract_Name", "Contract_ID", "Service_Type", "Start_Date", "End_Date", "Cost", "Maintenance"]
+    required_cols = ["Contract_Name", "Contract_ID", "Service_Type", "Start_Date", "End_Date", "Cost", "Maintenance", "Department"]
     if not all(col in df.columns for col in required_cols):
         st.error(f"Missing one or more required columns: {', '.join(required_cols)}")
     else:
@@ -59,7 +59,7 @@ if uploaded_file:
         df["Total Cost"] = df["Cost"] + df["Maintenance"]
 
         #Let's add this Search Bar!
-        search_query = st.text_input("Search Contracts by Name or ID")
+        search_query = st.text_input("Search Contracts by Name or ID🔎")
         if search_query:
             df = df[
                 df["Contract_Name"].str.contains(search_query, case=False, na=False)|
@@ -75,6 +75,11 @@ if uploaded_file:
         service_types = df["Service_Type"].unique()
         selected_types = st.multiselect("Filter by Service Type", service_types, default=service_types)
         df = df[df["Service_Type"].isin(selected_types)]
+
+        #Filter by Department
+        departments = df["Department"].dropna().unique()
+        selected_departments = st.multiselect("Filter by Department", departments, default=departments)
+        df = df[df["Department"].isin(selected_departments)]
 
         #Process each Service Type separately in their own group.
         for service in selected_types:
