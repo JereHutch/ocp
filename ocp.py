@@ -136,10 +136,10 @@ if uploaded_file:
             st.subheader("Total Estimated Savings Across All Service Types")
 
             #Show what contracts where kept and total overlapping.
-            total_overlapping = sum(len(g) for g in all_grouped if g["Overlap_Group"].nunique() > 1)
-            retained_contract_ids = final_df["Selected Contracts Cost"].count()
+            total_overlapping = sum((g.groupby("Overlap_Group").size() > 1).sum() for g in all_grouped)
+            retained_contract_ids = final_df["User Selected Contracts Cost"].count()
 
-            col1, col2 = st.column(2)
+            col1, col2 = st.columns(2)
             col1.metric("Total Overlapping Contracts", total_overlapping)
             col2.metric("Contracts Selected to Keep", retained_contract_ids)
 
