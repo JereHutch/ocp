@@ -6,21 +6,21 @@ for contracts that overlap each other. We will be using streamlit, pandas, and p
 for the framework and manipulation of the data. 
 """
 
-# We'll be using Streamlit as the framework and Pandas for the dataframes.
+#We'll be using Streamlit as the framework and Pandas for the dataframes.
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# Let's Show the TITLE and LOGO!
+#Let's Show the TITLE and LOGO!
 st.set_page_config(page_title="Contract Overlap Analyzer", layout="wide")
 st.title("Overlapinator: Contract Overlap Analyzer")
 st.write("Welcome! To Begin, Upload an Excel file with your contract data with the required columns.")
 st.write("Required Columns: Contract_Name, Contract_ID, Service_Type, Start_Date, End_Date, Cost, Maintenance, Department")
 
-# Upload their Excel File with their contract data.
+#Upload their Excel File with their contract data.
 uploaded_file = st.file_uploader("Choose an Excel file", type=["xlsx"])
 
-# Define the function for grouping overlapping contracts.
+#Define the function for grouping overlapping contracts.
 def assign_overlap_groups(df, start_group_id=0):
     df = df.copy()
     df["Start_Date"] = pd.to_datetime(df["Start_Date"])
@@ -43,21 +43,21 @@ def assign_overlap_groups(df, start_group_id=0):
 
         df.at[i, "Overlap_Group"] = group_id
 
-    return df, group_id  # return the updated group_id
+    return df, group_id  #return the updated group_id
 
-# Now we setup the main idea for the project itself. Overlapping by Service Type.
+#Now we setup the main idea for the project itself. Overlapping by Service Type.
 if uploaded_file:
     df = pd.read_excel(uploaded_file)
 
-    # Make sure they have the right columns.
+    #Make sure they have the right columns.
     required_cols = ["Contract_Name", "Contract_ID", "Service_Type", "Start_Date", "End_Date", "Cost", "Maintenance", "Department"]
     if not all(col in df.columns for col in required_cols):
         st.error(f"Missing one or more required columns: {', '.join(required_cols)}")
     else:
-        # Calculate the total cost of the contract.
+        #Calculate the total cost of the contract.
         df["Total Cost"] = df["Cost"] + df["Maintenance"]
 
-        # Sidebar Filters
+        #Sidebar Filters
         with st.sidebar:
             st.image("BongoLogo.PNG", width=120)
             st.markdown("### Filter Your Contracts")
@@ -70,7 +70,6 @@ if uploaded_file:
             departments = df["Department"].dropna().unique()
             selected_departments = st.multiselect("Department", departments, default=departments)
 
-        # Apply filters
         if search_query:
             df = df[
                 df["Contract_Name"].str.contains(search_query, case=False, na=False) |
@@ -84,19 +83,19 @@ if uploaded_file:
         all_savings = []
         group_id_counter = 0
 
-        # Process each Service Type separately in their own group.
+        #Process each Service Type separately in their own group.
         for service in selected_types:
             st.subheader(f"Service Type: {service}")
             df_service = df[df["Service_Type"] == service].copy()
             
-            # Get grouped dataframe and update the group_id_counter
+            #Get grouped dataframe and update the group_id_counter
             df_grouped, group_id_counter = assign_overlap_groups(df_service, start_group_id=group_id_counter)
             all_grouped.append(df_grouped)
 
             st.write("Overlapping Contracts:")
             st.dataframe(df_grouped)
 
-            # Calculate those savings.
+            #Calculate those savings.
             savings_list = []
             for group, group_df in df_grouped.groupby("Overlap_Group"):
                 if len(group_df) > 1:
@@ -131,16 +130,25 @@ if uploaded_file:
             else:
                 st.info(f"Assumption: No overlapping contracts found for {service}.")
 
-        # Final summary of all potential savings.
+        #Final summary of all potential savings.
         if all_savings:
             final_df = pd.concat(all_savings, ignore_index=True)
             st.subheader("Total Estimated Savings Across All Service Types")
-            st.dataframe(final_df)
 
+            #Show what contracts where kept and total overlapping.
+            total_overlapping = sum(len(g) for g in all_grouped if g["Overlap_Group"].nunique() > 1)
+            retained_contract_ids = final_df["Selected Contracts Cost"].count()
+
+            col1, col2 = st.column(2)
+            col1.metric("Total Overlapping Contracts", total_overlapping)
+            col2.metric("Contracts Selected to Keep", retained_contract_ids)
+
+            #Let's show the last savings table
+            st.dataframe(final_df, use_container_width=True)
             total_savings = final_df["Estimated Savings"].sum()
             st.metric("🔥Total Estimated Savings", f"${total_savings:,.2f}")
 
-            # Optional Download
+            #Optional Download
             st.download_button(
                 label="Download Savings Report",
                 data=final_df.to_csv(index=False),
@@ -148,7 +156,7 @@ if uploaded_file:
                 mime="text/csv"
             )
 
-            # Let's now add a pie chart to show our data.
+            #Let's now add a pie chart to show our data.
             pie_data = final_df.groupby("Service_Type")["Estimated Savings"].sum().reset_index()
             fig = px.pie(pie_data, names="Service_Type", values="Estimated Savings",
                          title="Savings by Service Type", hole=0.4)
