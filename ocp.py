@@ -83,7 +83,7 @@ if uploaded_file:
         all_savings = []
         group_id_counter = 0
 
-        #Process each Service Type separately in their own group.
+        #Put each overlapping contract in its own group.
         for service in selected_types:
             st.subheader(f"Service Type: {service}")
             df_service = df[df["Service_Type"] == service].copy()
