@@ -92,7 +92,7 @@ if uploaded_file:
             savings_list = []
             for group, group_df in df_grouped.groupby("Overlap_Group"):
                 if len(group_df) > 1:
-                    st.markdown(f"#### Overlap Group {group} - {service}")
+                    st.markdown(f"🔀#### Overlap Group {group} - {service}")
                     selected_contracts = []
                     for _, row in group_df.iterrows():
                         contract_id = row["Contract_ID"]
