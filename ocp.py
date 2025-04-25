@@ -13,7 +13,7 @@ import plotly.express as px
 
 #Let's Show the TITLE!!
 st.set_page_config(page_title="Contract Overlap Analyzer", layout="wide")
-st.title("Contract Overlap Analyzer")
+st.title("Overlapinator: Contract Overlap Analyzer")
 st.write("Welcome! To Begin, Upload an Excel file with your contract data.")
 st.write("Required Columns: Contract_Name, Contract_ID, Service_Type, Start_Date, End_Date, Cost, Maintenance")
 
